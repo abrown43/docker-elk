@@ -6,11 +6,17 @@ Run the latest version of the ELK (Elasticseach, Logstash, Kibana) stack with Do
 
 It will give you the ability to analyze any data set by using the searching/aggregation capabilities of Elasticseach and the visualization power of Kibana.
 
+By default logstash will index content sent to it on port 5000 and any readable files in /var/log on the host
+
 Based on the official images:
 
 * [elasticsearch](https://registry.hub.docker.com/_/elasticsearch/)
 * [logstash](https://registry.hub.docker.com/_/logstash/)
 * [kibana](https://registry.hub.docker.com/_/kibana/)
+
+Based on unofficial images:
+* [zookeeper](https://registry.hub.docker.com/r/wurstmeister/zookeeper)
+* [kafka](https://registry.hub.docker.com/r/wurstmeister/kafka)
 
 # Requirements
 
@@ -42,6 +48,11 @@ You can also choose to run it in background (detached mode):
 
 ```bash
 $ docker-compose up -d
+```
+
+YOu can also scale the instances:
+```bash
+$ docker-compose scale zookeeper=5 kafka=5
 ```
 
 Now that the stack is running, you'll want to inject logs in it. The shipped logstash configuration allows you to send content via tcp:

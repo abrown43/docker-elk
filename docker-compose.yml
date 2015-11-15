@@ -3,20 +3,55 @@ elasticsearch:
   command: elasticsearch -Des.network.host=0.0.0.0
   ports:
     - "9200:9200"
-logstash:
+
+logstash_to_kafka:
   image: logstash:latest
   command: logstash -f /etc/logstash/conf.d/logstash.conf
   volumes:
     - ./logstash/config:/etc/logstash/conf.d
+    - /var/log:/data
   ports:
     - "5000:5000"
   links:
     - elasticsearch
-kibana:
-  build: kibana/
+    - kafka
+    - zookeeper:zk
+
+logstash_from_kafka:
+  image: logstash:latest
+  command: logstash -f /etc/logstash/conf.d/logstash.conf
   volumes:
-    - ./kibana/config/kibana.yml:/opt/kibana/config/kibana.yml
+    - ./logstash_elasticsearch/config:/etc/logstash/conf.d
+  links:
+    - elasticsearch
+    - kafka
+    - zookeeper:zk
+
+kibana:
+  image: kibana:latest
+  volumes:
+#    - ./kibana/config/kibana.yml:/opt/kibana/config/kibana.yml
+    - ./kibana/config:/opt/kibana/config
   ports:
     - "5601:5601"
   links:
     - elasticsearch
+
+# Kafka
+zookeeper:
+  image: wurstmeister/zookeeper:latest
+  ports:
+    - "2181"
+
+# docker-compose scale kafka=3
+kafka:
+  image: wurstmeister/kafka:latest
+  ports:
+    - "9092"
+  links:
+    - zookeeper:zk
+  environment:
+    KAFKA_ADVERTISED_HOST_NAME: 192.168.0.223
+    KAFKA_CREATE_TOPICS: "logstash:1:1"
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
